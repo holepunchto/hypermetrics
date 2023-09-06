@@ -1,6 +1,6 @@
 class Hypermetrics {
-  constructor () {
-    this.client = require('prom-client')
+  constructor (client) {
+    this.client = client
     this.uploadSpeedometers = new Map()
     this.downloadSpeedometers = new Map()
     this.cores = []

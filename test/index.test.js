@@ -3,7 +3,8 @@ const ram = require('random-access-memory')
 const test = require('brittle')
 const Hypermetrics = require('../index.js')
 
-const metrics = new Hypermetrics()
+const client = require('prom-client')
+const metrics = new Hypermetrics(client)
 
 test('basic length metric', async (t) => {
   const core = new Hypercore(ram)

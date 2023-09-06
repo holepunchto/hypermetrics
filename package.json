@@ -1,7 +1,7 @@
 {
   "name": "hypermetrics",
   "version": "1.0.0",
-  "description": "",
+  "description": "Hypercore Prometheus metric collector.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -9,15 +9,21 @@
   "keywords": [],
   "author": "",
   "license": "Apache-2.0",
-  "dependencies": {
+  "devDependencies": {
+    "brittle": "^3.3.2",
     "hypercore": "^10.22.2",
     "prom-client": "^14.2.0",
     "random-access-memory": "^6.2.0",
     "speedometer": "^1.1.0",
+    "standard": "^17.1.0",
     "streamx": "^2.15.1"
   },
-  "devDependencies": {
-    "brittle": "^3.3.2",
-    "standard": "^17.1.0"
-  }
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/holepunchto/hypermetrics.git"
+  },
+  "bugs": {
+    "url": "https://github.com/holepunchto/hypermetrics/issues"
+  },
+  "homepage": "https://github.com/holepunchto/hypermetrics#readme"
 }

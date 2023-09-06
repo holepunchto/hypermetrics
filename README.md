@@ -5,8 +5,8 @@ Hypercore Prometheus metric collector.
 ## Usage
 
 ``` js
-
-const hypermetrics = new Hypermetrics()
+const client = require('prom-client')
+const hypermetrics = new Hypermetrics(client)
 
 const core = new Hypercore(ram)
 await core.ready()
