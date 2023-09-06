@@ -15,7 +15,7 @@ test('basic length metric', async (t) => {
   await core.append(Date.now().toString())
   await core.append(Date.now().toString())
 
-  const result = await metrics.register.getMetricsAsJSON()
+  const result = await metrics.getMetricsAsJSON()
 
   const length = findMetric(result, core.key.toString('hex'), 'hypercore_length')
   const indexedLength = findMetric(result, core.key.toString('hex'), 'hypercore_indexed_length')

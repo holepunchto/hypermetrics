@@ -107,6 +107,10 @@ class Hypermetrics {
   get register () {
     return this.client.register
   }
+
+  getMetricsAsJSON () {
+    return this.client.register.getMetricsAsJSON()
+  }
 }
 
 module.exports = Hypermetrics
