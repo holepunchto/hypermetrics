@@ -3,8 +3,9 @@ const ram = require('random-access-memory')
 const test = require('brittle')
 const Hypermetrics = require('../index.js')
 
+const metrics = new Hypermetrics()
+
 test('basic length metric', async (t) => {
-  const metrics = new Hypermetrics()
   const core = new Hypercore(ram)
   await core.ready()
 
