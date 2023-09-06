@@ -1,46 +1,112 @@
-const Hypercore = require('hypercore')
-const ram = require('random-access-memory')
-const server = require('fastify')()
+class Hypermetrics {
+  constructor () {
+    this.client = require('prom-client')
+    this.uploadSpeedometers = new Map()
+    this.downloadSpeedometers = new Map()
+    this.cores = []
 
-class HyperMetrics {
-    constructor () {
-        this.client = require('prom-client')
-        this.counter = new this.client.Counter({
-            name: 'appended_blocks',
-            help: 'number of appended blocks',
-            labelNames: ['key']
-        })
-    }
+    // for collect functions context
+    const cores = this.cores
 
-    add (core, type = "hypercore") {
-        core.on('append', () => {
-            this.counter.labels({ key: core.key.toString('hex') }).inc()
+    new this.client.Gauge({
+      name: 'hypercore_length',
+      help: 'hypercore length',
+      labelNames: ['key'],
+      collect () {
+        for (const core of cores) {
+          this.labels({ key: core.key.toString('hex') }).set(core.length)
+        }
+      }
+    })
 
-        })
-    }
+    new this.client.Gauge({
+      name: 'hypercore_indexed_length',
+      help: 'hypercore indexed length',
+      labelNames: ['key'],
+      collect () {
+        for (const core of cores) {
+          this.labels({ key: core.key.toString('hex') }).set(core.indexedLength)
+        }
+      }
+    })
+
+    new this.client.Gauge({
+      name: 'hypercore_contiguous_length',
+      help: 'hypercore contiguous length',
+      labelNames: ['key'],
+      collect () {
+        for (const core of cores) {
+          this.labels({ key: core.key.toString('hex') }).set(core.contiguousLength)
+        }
+      }
+    })
+
+    new this.client.Gauge({
+      name: 'hypercore_byte_length',
+      help: 'hypercore byte length',
+      labelNames: ['key'],
+      collect () {
+        for (const core of cores) {
+          this.labels({ key: core.key.toString('hex') }).set(core.byteLength)
+        }
+      }
+    })
+
+    new this.client.Gauge({
+      name: 'hypercore_contiguous_byte_length',
+      help: 'hypercore contiguous byte length',
+      labelNames: ['key'],
+      collect () {
+        for (const core of cores) {
+          this.labels({ key: core.key.toString('hex') }).set(core.contiguousByteLength)
+        }
+      }
+    })
+
+    new this.client.Gauge({
+      name: 'hypercore_fork',
+      help: 'hypercore fork',
+      labelNames: ['key'],
+      collect () {
+        for (const core of cores) {
+          this.labels({ key: core.key.toString('hex') }).set(core.fork)
+        }
+      }
+    })
+
+    new this.client.Gauge({
+      name: 'hypercore_peers',
+      help: 'hypercore number of peers',
+      labelNames: ['key'],
+      collect () {
+        for (const core of cores) {
+          this.labels({ key: core.key.toString('hex') }).set(core.peers.length)
+        }
+      }
+    })
+
+    this.uploadedBlocks = new this.client.Counter({
+      name: 'hypercore_uploaded_blocks',
+      help: 'hypercore uploaded blocks',
+      labelNames: ['key']
+    })
+
+    this.downloadedBlocks = new this.client.Counter({
+      name: 'hypercore_downloaded_blocks',
+      help: 'hypercore downloaded blocks',
+      labelNames: ['key']
+    })
+  }
+
+  add (core) {
+    this.cores.push(core)
+    core.on('upload', () => this.uploadedBlocks.labels(core.key.toString('hex')).inc())
+    core.on('download', () => this.downloadedBlocks.labels(core.key.toString('hex')).inc())
+  }
+
+  get register () {
+    return this.client.register
+  }
 }
 
-
-const metrics = new HyperMetrics()
-
-server.get('/metrics', async function (req, res) {
-    res.send(await metrics.client.register.metrics())
-})
-
-const main = async () => {
-    const coreA = new Hypercore(ram)
-    const coreB = new Hypercore(ram)
-    await coreA.ready()
-    await coreB.ready()
-
-    metrics.add(coreA)
-    metrics.add(coreB)
-
-    setInterval(() => {
-        coreA.append(Date.now().toString())
-        coreB.append(Date.now().toString())
-    }, 1000)
-}
-
-server.listen({ port: 8080 })
-main()
+module.exports = Hypermetrics

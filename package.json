@@ -1,5 +1,5 @@
 {
-  "name": "instrumented-hypercore",
+  "name": "hypermetrics",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,9 +10,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "fastify": "^4.22.2",
-    "hypercore": "^10.22.0",
+    "hypercore": "^10.22.2",
     "prom-client": "^14.2.0",
-    "random-access-memory": "^6.2.0"
+    "random-access-memory": "^6.2.0",
+    "speedometer": "^1.1.0",
+    "streamx": "^2.15.1"
+  },
+  "devDependencies": {
+    "brittle": "^3.3.2",
+    "standard": "^17.1.0"
   }
 }
