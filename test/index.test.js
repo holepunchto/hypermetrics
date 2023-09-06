@@ -1,4 +1,5 @@
 const Hypercore = require('hypercore')
+const Hyperbee = require('hyperbee')
 const ram = require('random-access-memory')
 const test = require('brittle')
 const Hypermetrics = require('../index.js')
@@ -28,6 +29,27 @@ test('basic length metric', async (t) => {
   t.is(indexedLength, 4)
   t.is(contiguousLength, 4)
   t.is(byteLength, 52)
+})
+
+test('hyperbee metrics', async (t) => {
+  const core = new Hypercore(ram)
+  const bee = new Hyperbee(core, { keyEncoding: 'utf-8', valueEncoding: 'utf-8' })
+  await core.ready()
+  await bee.ready()
+
+  metrics.addBee(bee)
+
+  await bee.put('key', 'value')
+  await bee.del('key')
+
+  await new Promise((resolve) => setTimeout(resolve, 100))
+
+  const result = await metrics.getMetricsAsJSON()
+  const putOperations = findMetric(result, core.key.toString('hex'), 'hyperbee_put_operations')
+  const delOperations = findMetric(result, core.key.toString('hex'), 'hyperbee_del_operations')
+
+  t.is(putOperations, 1)
+  t.is(delOperations, 1)
 })
 
 function findMetric (metrics, key, name) {

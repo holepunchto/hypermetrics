@@ -11,6 +11,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "brittle": "^3.3.2",
+    "hyperbee": "^2.15.0",
     "hypercore": "^10.22.2",
     "prom-client": "^14.2.0",
     "random-access-memory": "^6.2.0",
