@@ -1,3 +1,5 @@
+const Id = require('hypercore-id-encoding')
+
 class Hypermetrics {
   constructor (client) {
     this.client = client
@@ -14,7 +16,7 @@ class Hypermetrics {
       labelNames: ['key', 'type'],
       collect () {
         for (const core of cores) {
-          this.labels({ key: core.key.toString('hex'), type: 'hypercore' }).set(core.length)
+          this.labels({ key: Id.encode(core.key), type: 'hypercore' }).set(core.length)
         }
       }
     })
@@ -25,7 +27,7 @@ class Hypermetrics {
       labelNames: ['key', 'type'],
       collect () {
         for (const core of cores) {
-          this.labels({ key: core.key.toString('hex'), type: 'hypercore' }).set(core.indexedLength)
+          this.labels({ key: Id.encode(core.key), type: 'hypercore' }).set(core.indexedLength)
         }
       }
     })
@@ -36,7 +38,7 @@ class Hypermetrics {
       labelNames: ['key', 'type'],
       collect () {
         for (const core of cores) {
-          this.labels({ key: core.key.toString('hex'), type: 'hypercore' }).set(core.contiguousLength)
+          this.labels({ key: Id.encode(core.key), type: 'hypercore' }).set(core.contiguousLength)
         }
       }
     })
@@ -47,7 +49,7 @@ class Hypermetrics {
       labelNames: ['key', 'type'],
       collect () {
         for (const core of cores) {
-          this.labels({ key: core.key.toString('hex'), type: 'hypercore' }).set(core.byteLength)
+          this.labels({ key: Id.encode(core.key), type: 'hypercore' }).set(core.byteLength)
         }
       }
     })
@@ -58,7 +60,7 @@ class Hypermetrics {
       labelNames: ['key', 'type'],
       collect () {
         for (const core of cores) {
-          this.labels({ key: core.key.toString('hex'), type: 'hypercore' }).set(core.contiguousByteLength)
+          this.labels({ key: Id.encode(core.key), type: 'hypercore' }).set(core.contiguousByteLength)
         }
       }
     })
@@ -69,7 +71,7 @@ class Hypermetrics {
       labelNames: ['key', 'type'],
       collect () {
         for (const core of cores) {
-          this.labels({ key: core.key.toString('hex'), type: 'hypercore' }).set(core.fork)
+          this.labels({ key: Id.encode(core.key), type: 'hypercore' }).set(core.fork)
         }
       }
     })
@@ -80,7 +82,7 @@ class Hypermetrics {
       labelNames: ['key', 'type'],
       collect () {
         for (const core of cores) {
-          this.labels({ key: core.key.toString('hex'), type: 'hypercore' }).set(core.peers.length)
+          this.labels({ key: Id.encode(core.key), type: 'hypercore' }).set(core.peers.length)
         }
       }
     })
@@ -112,18 +114,18 @@ class Hypermetrics {
 
   add (core) {
     this.cores.push(core)
-    core.on('upload', () => this.uploadedBlocks.labels({ key: core.key.toString('hex'), type: 'hypercore' }).inc())
-    core.on('download', () => this.downloadedBlocks.labels({ key: core.key.toString('hex'), type: 'hypercore' }).inc())
+    core.on('upload', () => this.uploadedBlocks.labels({ key: Id.encode(core.key), type: 'hypercore' }).inc())
+    core.on('download', () => this.downloadedBlocks.labels({ key: Id.encode(core.key), type: 'hypercore' }).inc())
   }
 
   addBee (bee) {
     this.add(bee.core)
     bee.createHistoryStream({ live: true }).on('data', (op) => {
       if (op.type === 'put') {
-        this.putOperations.labels({ key: bee.core.key.toString('hex'), type: 'hyperbee' }).inc()
+        this.putOperations.labels({ key: Id.encode(bee.core.key), type: 'hyperbee' }).inc()
       }
       if (op.type === 'del') {
-        this.delOperations.labels({ key: bee.core.key.toString('hex'), type: 'hyperbee' }).inc()
+        this.delOperations.labels({ key: Id.encode(bee.core.key), type: 'hyperbee' }).inc()
       }
     })
   }

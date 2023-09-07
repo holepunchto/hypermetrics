@@ -3,6 +3,7 @@ const Hyperbee = require('hyperbee')
 const ram = require('random-access-memory')
 const test = require('brittle')
 const Hypermetrics = require('../index.js')
+const Id = require('hypercore-id-encoding')
 
 const client = require('prom-client')
 const metrics = new Hypermetrics(client)
@@ -20,10 +21,10 @@ test('basic length metric', async (t) => {
 
   const result = await metrics.getMetricsAsJSON()
 
-  const length = findMetric(result, core.key.toString('hex'), 'hypercore_length')
-  const indexedLength = findMetric(result, core.key.toString('hex'), 'hypercore_indexed_length')
-  const contiguousLength = findMetric(result, core.key.toString('hex'), 'hypercore_contiguous_length')
-  const byteLength = findMetric(result, core.key.toString('hex'), 'hypercore_byte_length')
+  const length = findMetric(result, Id.encode(core.key), 'hypercore_length')
+  const indexedLength = findMetric(result, Id.encode(core.key), 'hypercore_indexed_length')
+  const contiguousLength = findMetric(result, Id.encode(core.key), 'hypercore_contiguous_length')
+  const byteLength = findMetric(result, Id.encode(core.key), 'hypercore_byte_length')
 
   t.is(length, 4)
   t.is(indexedLength, 4)
@@ -45,8 +46,8 @@ test('hyperbee metrics', async (t) => {
   await new Promise((resolve) => setTimeout(resolve, 100))
 
   const result = await metrics.getMetricsAsJSON()
-  const putOperations = findMetric(result, core.key.toString('hex'), 'hyperbee_put_operations')
-  const delOperations = findMetric(result, core.key.toString('hex'), 'hyperbee_del_operations')
+  const putOperations = findMetric(result, Id.encode(core.key), 'hyperbee_put_operations')
+  const delOperations = findMetric(result, Id.encode(core.key), 'hyperbee_del_operations')
 
   t.is(putOperations, 1)
   t.is(delOperations, 1)
