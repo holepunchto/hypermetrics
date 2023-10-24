@@ -77,6 +77,32 @@ class Hypermetrics {
     })
 
     new this.client.Gauge({ // eslint-disable-line no-new
+      name: 'hypercore_nr_inflight_blocks',
+      help: 'Total number of blocks in flight per core (summed across all peers)',
+      labelNames: ['key', 'type'],
+      collect () {
+        for (const core of cores) {
+          this.labels({ key: Id.encode(core.key), type: 'hypercore' }).set(
+            core.peers.reduce((total, peer) => total + peer.inflight, 0)
+          )
+        }
+      }
+    })
+
+    new this.client.Gauge({ // eslint-disable-line no-new
+      name: 'hypercore_max_inflight_blocks',
+      help: 'Max number of blocks in flight per core (summed across all peers)',
+      labelNames: ['key', 'type'],
+      collect () {
+        for (const core of cores) {
+          this.labels({ key: Id.encode(core.key), type: 'hypercore' }).set(
+            core.peers.reduce((total, peer) => total + peer.getMaxInflight(), 0)
+          )
+        }
+      }
+    })
+
+    new this.client.Gauge({ // eslint-disable-line no-new
       name: 'hypercore_peers',
       help: 'hypercore number of peers',
       labelNames: ['key', 'type'],
@@ -134,7 +160,7 @@ class Hypermetrics {
     return this.client.register
   }
 
-  getMetricsAsJSON () {
+  async getMetricsAsJSON () {
     return this.client.register.getMetricsAsJSON()
   }
 }
