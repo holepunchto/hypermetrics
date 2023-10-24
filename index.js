@@ -134,7 +134,7 @@ class Hypermetrics {
     return this.client.register
   }
 
-  getMetricsAsJSON () {
+  async getMetricsAsJSON () {
     return this.client.register.getMetricsAsJSON()
   }
 }
