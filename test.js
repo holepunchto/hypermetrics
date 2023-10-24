@@ -27,6 +27,8 @@ test('Returns expected metrics', async t => {
     'hypercore_peers',
     'hypercore_uploaded_blocks',
     'hypercore_downloaded_blocks',
+    'hypercore_nr_inflight_blocks',
+    'hypercore_max_inflight_blocks',
     'hyperbee_put_operations',
     'hyperbee_del_operations'
   ])
