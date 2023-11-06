@@ -1,159 +1,131 @@
 const Id = require('hypercore-id-encoding')
 
+const DEFAULT_NO_NAME = 'NO_NAME'
+
 class Hypermetrics {
   constructor (client) {
     this.client = client
     this.uploadSpeedometers = new Map()
     this.downloadSpeedometers = new Map()
-    this.cores = [] // TODO change to set
+    this._cores = [] // TODO change to set
+    this._names = new Map()
+    this._labelNames = ['key', 'type', 'name']
 
-    // for collect functions context
-    const cores = this.cores
+    const self = this
 
     new this.client.Gauge({ // eslint-disable-line no-new
       name: 'hypercore_length',
       help: 'hypercore length',
-      labelNames: ['key', 'type'],
+      labelNames: this._labelNames,
       collect () {
-        for (const core of cores) {
-          this.labels({ key: Id.encode(core.key), type: 'hypercore' }).set(core.length)
-        }
+        self._collectMetric((core) => core.length, this)
       }
     })
 
     new this.client.Gauge({ // eslint-disable-line no-new
       name: 'hypercore_indexed_length',
       help: 'hypercore indexed length',
-      labelNames: ['key', 'type'],
+      labelNames: this._labelNames,
       collect () {
-        for (const core of cores) {
-          this.labels({ key: Id.encode(core.key), type: 'hypercore' }).set(core.indexedLength)
-        }
+        self._collectMetric((core) => core.indexedLength, this)
       }
     })
 
     new this.client.Gauge({ // eslint-disable-line no-new
       name: 'hypercore_contiguous_length',
       help: 'hypercore contiguous length',
-      labelNames: ['key', 'type'],
+      labelNames: this._labelNames,
       collect () {
-        for (const core of cores) {
-          this.labels({ key: Id.encode(core.key), type: 'hypercore' }).set(core.contiguousLength)
-        }
+        self._collectMetric((core) => core.contiguousLength, this)
       }
     })
 
     new this.client.Gauge({ // eslint-disable-line no-new
       name: 'hypercore_byte_length',
       help: 'hypercore byte length',
-      labelNames: ['key', 'type'],
+      labelNames: this._labelNames,
       collect () {
-        for (const core of cores) {
-          this.labels({ key: Id.encode(core.key), type: 'hypercore' }).set(core.byteLength)
-        }
+        self._collectMetric((core) => core.byteLength, this)
       }
     })
 
     new this.client.Gauge({ // eslint-disable-line no-new
       name: 'hypercore_contiguous_byte_length',
       help: 'hypercore contiguous byte length',
-      labelNames: ['key', 'type'],
+      labelNames: this._labelNames,
       collect () {
-        for (const core of cores) {
-          this.labels({ key: Id.encode(core.key), type: 'hypercore' }).set(core.contiguousByteLength)
-        }
+        self._collectMetric((core) => core.contiguousByteLength, this)
       }
     })
 
     new this.client.Gauge({ // eslint-disable-line no-new
       name: 'hypercore_fork',
       help: 'hypercore fork',
-      labelNames: ['key', 'type'],
+      labelNames: this._labelNames,
       collect () {
-        for (const core of cores) {
-          this.labels({ key: Id.encode(core.key), type: 'hypercore' }).set(core.fork)
-        }
+        self._collectMetric((core) => core.fork, this)
       }
     })
 
     new this.client.Gauge({ // eslint-disable-line no-new
       name: 'hypercore_nr_inflight_blocks',
       help: 'Total number of blocks in flight per core (summed across all peers)',
-      labelNames: ['key', 'type'],
+      labelNames: this._labelNames,
       collect () {
-        for (const core of cores) {
-          this.labels({ key: Id.encode(core.key), type: 'hypercore' }).set(
-            core.peers.reduce((total, peer) => total + peer.inflight, 0)
-          )
-        }
+        self._collectMetric((core) => {
+          return core.peers.reduce((total, peer) => total + peer.inflight, 0)
+        }, this)
       }
     })
 
     new this.client.Gauge({ // eslint-disable-line no-new
       name: 'hypercore_max_inflight_blocks',
       help: 'Max number of blocks in flight per core (summed across all peers)',
-      labelNames: ['key', 'type'],
+      labelNames: this._labelNames,
       collect () {
-        for (const core of cores) {
-          this.labels({ key: Id.encode(core.key), type: 'hypercore' }).set(
-            core.peers.reduce((total, peer) => total + peer.getMaxInflight(), 0)
-          )
-        }
+        self._collectMetric((core) => {
+          return core.peers.reduce((total, peer) => total + peer.getMaxInflight(), 0)
+        }, this)
       }
     })
 
     new this.client.Gauge({ // eslint-disable-line no-new
       name: 'hypercore_peers',
       help: 'hypercore number of peers',
-      labelNames: ['key', 'type'],
+      labelNames: this._labelNames,
       collect () {
-        for (const core of cores) {
-          this.labels({ key: Id.encode(core.key), type: 'hypercore' }).set(core.peers.length)
-        }
+        self._collectMetric((core) => core.peers.length, this)
       }
     })
 
     this.uploadedBlocks = new this.client.Counter({
       name: 'hypercore_uploaded_blocks',
       help: 'hypercore uploaded blocks',
-      labelNames: ['key', 'type']
+      labelNames: this._labelNames
     })
 
     this.downloadedBlocks = new this.client.Counter({
       name: 'hypercore_downloaded_blocks',
       help: 'hypercore downloaded blocks',
-      labelNames: ['key', 'type']
-    })
-
-    this.putOperations = new this.client.Counter({
-      name: 'hyperbee_put_operations',
-      help: 'hyperbee number of put operations',
-      labelNames: ['key', 'type']
-    })
-
-    this.delOperations = new this.client.Counter({
-      name: 'hyperbee_del_operations',
-      help: 'hyperbee number of del operations',
-      labelNames: ['key', 'type']
+      labelNames: this._labelNames
     })
   }
 
-  add (core) {
-    this.cores.push(core)
-    core.on('upload', () => this.uploadedBlocks.labels({ key: Id.encode(core.key), type: 'hypercore' }).inc())
-    core.on('download', () => this.downloadedBlocks.labels({ key: Id.encode(core.key), type: 'hypercore' }).inc())
+  add (core, opts = {}) {
+    const key = Id.encode(core.key)
+    const name = opts.name || DEFAULT_NO_NAME
+    this._cores.push(core)
+    this._names.set(key, name)
+    core.on('upload', () => this.uploadedBlocks.labels({ key, type: 'hypercore', name }).inc())
+    core.on('download', () => this.downloadedBlocks.labels({ key, type: 'hypercore', name }).inc())
   }
 
-  addBee (bee) {
-    this.add(bee.core)
-    bee.createHistoryStream({ live: true }).on('data', (op) => {
-      if (op.type === 'put') {
-        this.putOperations.labels({ key: Id.encode(bee.core.key), type: 'hyperbee' }).inc()
-      }
-      if (op.type === 'del') {
-        this.delOperations.labels({ key: Id.encode(bee.core.key), type: 'hyperbee' }).inc()
-      }
-    })
+  _collectMetric (getValue, metric) {
+    for (const core of this._cores) {
+      const key = Id.encode(core.key)
+      const name = this._names.get(key)
+      metric.labels({ key, type: 'hypercore', name }).set(getValue(core))
+    }
   }
 
   get register () {
