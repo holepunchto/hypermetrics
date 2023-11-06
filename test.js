@@ -32,9 +32,7 @@ test('Returns expected metrics', async t => {
     'hypercore_uploaded_blocks',
     'hypercore_downloaded_blocks',
     'hypercore_nr_inflight_blocks',
-    'hypercore_max_inflight_blocks',
-    'hyperbee_put_operations',
-    'hyperbee_del_operations'
+    'hypercore_max_inflight_blocks'
   ])
 
   t.alike(metricNames, expectedMetrics, 'Has all expected metrics')
@@ -84,29 +82,6 @@ test('adds core name as label', async (t) => {
   const length = findMetricByCoreName(result, coreName, 'hypercore_length')
 
   t.is(length, 3)
-})
-
-test('hyperbee metrics', async (t) => {
-  promClient.register.clear()
-  const metrics = new HyperMetrics(promClient)
-  const core = new Hypercore(ram)
-  const bee = new Hyperbee(core, { keyEncoding: 'utf-8', valueEncoding: 'utf-8' })
-  await core.ready()
-  await bee.ready()
-
-  metrics.addBee(bee)
-
-  await bee.put('key', 'value')
-  await bee.del('key')
-
-  await new Promise((resolve) => setTimeout(resolve, 100))
-
-  const result = await metrics.getMetricsAsJSON()
-  const putOperations = findMetric(result, Id.encode(core.key), 'hyperbee_put_operations')
-  const delOperations = findMetric(result, Id.encode(core.key), 'hyperbee_del_operations')
-
-  t.is(putOperations, 1)
-  t.is(delOperations, 1)
 })
 
 function findMetric (metrics, key, name) {
