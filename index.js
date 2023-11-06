@@ -1,5 +1,7 @@
 const Id = require('hypercore-id-encoding')
 
+const DEFAULT_NO_NAME = 'NO_NAME'
+
 class Hypermetrics {
   constructor (client) {
     this.client = client
@@ -158,7 +160,7 @@ class Hypermetrics {
     })
   }
 
-  add (core, name) {
+  add (core, name = DEFAULT_NO_NAME) {
     this.cores.push(core)
     const key = Id.encode(core.key)
     this.names.set(key, name)
