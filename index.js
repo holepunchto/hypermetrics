@@ -111,9 +111,10 @@ class Hypermetrics {
     })
   }
 
-  add (core, name = DEFAULT_NO_NAME) {
-    this._cores.push(core)
+  add (core, opts = {}) {
     const key = Id.encode(core.key)
+    const name = opts.name || DEFAULT_NO_NAME
+    this._cores.push(core)
     this._names.set(key, name)
     core.on('upload', () => this.uploadedBlocks.labels({ key, type: 'hypercore', name }).inc())
     core.on('download', () => this.downloadedBlocks.labels({ key, type: 'hypercore', name }).inc())

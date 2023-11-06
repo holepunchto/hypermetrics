@@ -70,8 +70,8 @@ test('adds core name as label', async (t) => {
   const core = new Hypercore(ram)
   await core.ready()
 
-  const coreName = 'hypermetrics-test-core'
-  metrics.add(core, coreName)
+  const name = 'hypermetrics-test-core'
+  metrics.add(core, { name })
 
   await core.append(Date.now().toString())
   await core.append(Date.now().toString())
@@ -79,7 +79,7 @@ test('adds core name as label', async (t) => {
 
   const result = await metrics.getMetricsAsJSON()
 
-  const length = findMetricByCoreName(result, coreName, 'hypercore_length')
+  const length = findMetricByCoreName(result, name, 'hypercore_length')
 
   t.is(length, 3)
 })
