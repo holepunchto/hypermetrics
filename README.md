@@ -10,7 +10,7 @@ const hypermetrics = new Hypermetrics(client)
 
 const core = new Hypercore(ram)
 await core.ready()
-hypermetrics.add(core)
+hypermetrics.add(core, { name: 'name-of-the-core' })
 
 server.get('/metrics', async function (req, res) {
     res.send(await hypermetrics.register.metrics())
