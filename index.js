@@ -5,8 +5,6 @@ const DEFAULT_NO_NAME = 'NO_NAME'
 class Hypermetrics {
   constructor (client) {
     this.client = client
-    this.uploadSpeedometers = new Map()
-    this.downloadSpeedometers = new Map()
     this._cores = [] // TODO change to set
     this._names = new Map()
     this._labelNames = ['key', 'type', 'name']
@@ -104,9 +102,21 @@ class Hypermetrics {
       labelNames: this._labelNames
     })
 
+    this.uploadedBytes = new this.client.Counter({
+      name: 'hypercore_uploaded_bytes',
+      help: 'Nr of bytes uploaded, per core',
+      labelNames: this._labelNames
+    })
+
     this.downloadedBlocks = new this.client.Counter({
       name: 'hypercore_downloaded_blocks',
       help: 'hypercore downloaded blocks',
+      labelNames: this._labelNames
+    })
+
+    this.downloadedBytes = new this.client.Counter({
+      name: 'hypercore_downloaded_bytes',
+      help: 'Nr of bytes downloaded, per core',
       labelNames: this._labelNames
     })
   }
@@ -116,8 +126,15 @@ class Hypermetrics {
     const name = opts.name || DEFAULT_NO_NAME
     this._cores.push(core)
     this._names.set(key, name)
-    core.on('upload', () => this.uploadedBlocks.labels({ key, type: 'hypercore', name }).inc())
-    core.on('download', () => this.downloadedBlocks.labels({ key, type: 'hypercore', name }).inc())
+
+    core.on('upload', (startIndex, byteLength, from) => {
+      this.uploadedBlocks.labels({ key, type: 'hypercore', name }).inc()
+      this.uploadedBytes.labels({ key, type: 'hypercore', name }).inc(byteLength)
+    })
+    core.on('download', (startIndex, byteLength, from) => {
+      this.downloadedBlocks.labels({ key, type: 'hypercore', name }).inc()
+      this.downloadedBytes.labels({ key, type: 'hypercore', name }).inc(byteLength)
+    })
   }
 
   _collectMetric (getValue, metric) {

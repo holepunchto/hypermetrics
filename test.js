@@ -32,7 +32,9 @@ test('Returns expected metrics', async t => {
     'hypercore_uploaded_blocks',
     'hypercore_downloaded_blocks',
     'hypercore_nr_inflight_blocks',
-    'hypercore_max_inflight_blocks'
+    'hypercore_max_inflight_blocks',
+    'hypercore_uploaded_bytes',
+    'hypercore_downloaded_bytes'
   ])
 
   t.alike(metricNames, expectedMetrics, 'Has all expected metrics')
