@@ -32,10 +32,26 @@ test('Returns expected metrics', async t => {
     'hypercore_uploaded_blocks',
     'hypercore_downloaded_blocks',
     'hypercore_nr_inflight_blocks',
-    'hypercore_max_inflight_blocks'
+    'hypercore_max_inflight_blocks',
+    'hypercore_uploaded_bytes',
+    'hypercore_downloaded_bytes'
   ])
 
   t.alike(metricNames, expectedMetrics, 'Has all expected metrics')
+})
+
+test('Returns detailed metrics when set', async t => {
+  promClient.register.clear()
+  const store = new Corestore(RAM)
+  const core = store.get({ name: 'core' })
+  await core.ready()
+
+  const metrics = new HyperMetrics(promClient, { detailed: true })
+  metrics.add(core)
+  const metricNames = new Set((await metrics.getMetricsAsJSON()).map(entry => entry.name))
+
+  t.ok(metricNames.has('hypercore_peer_downloaded_bytes'), 'hypercore_peer_downloaded_bytes included')
+  t.ok(metricNames.has('hypercore_peer_uploaded_bytes'), 'hypercore_peer_uploaded_bytes included')
 })
 
 test('basic length metric', async (t) => {
