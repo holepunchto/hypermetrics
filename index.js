@@ -5,10 +5,11 @@ const DEFAULT_NO_NAME = 'NO_NAME'
 class Hypermetrics {
   constructor (client, opts = {}) {
     this.client = client
+    this.detailed = !!opts.detailed
+
     this._cores = [] // TODO change to set
     this._names = new Map()
     this._labelNames = ['key', 'type', 'name']
-    this.detailed = !!opts.detailed
 
     const self = this
 
