@@ -40,6 +40,20 @@ test('Returns expected metrics', async t => {
   t.alike(metricNames, expectedMetrics, 'Has all expected metrics')
 })
 
+test('Returns detailed metrics when set', async t => {
+  promClient.register.clear()
+  const store = new Corestore(RAM)
+  const core = store.get({ name: 'core' })
+  await core.ready()
+
+  const metrics = new HyperMetrics(promClient, { detailed: true })
+  metrics.add(core)
+  const metricNames = new Set((await metrics.getMetricsAsJSON()).map(entry => entry.name))
+
+  t.ok(metricNames.has('hypercore_peer_downloaded_bytes'), 'hypercore_peer_downloaded_bytes included')
+  t.ok(metricNames.has('hypercore_peer_uploaded_bytes'), 'hypercore_peer_uploaded_bytes included')
+})
+
 test('basic length metric', async (t) => {
   promClient.register.clear()
   const metrics = new HyperMetrics(promClient)
