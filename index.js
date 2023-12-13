@@ -150,7 +150,7 @@ class Hypermetrics {
       this.uploadedBytes.labels({ key, type: 'hypercore', name }).inc(byteLength)
 
       if (this.uploadedBytesPerPeer) {
-        const peerKey = Id.encode(from.remoteKey)
+        const peerKey = Id.encode(from.remotePublicKey)
         this.uploadedBytesPerPeer.labels({ peerKey }).inc(byteLength)
       }
     })
