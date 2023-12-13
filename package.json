@@ -1,6 +1,6 @@
 {
   "name": "hypermetrics",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Hypercore Prometheus metric collector.",
   "main": "index.js",
   "scripts": {
