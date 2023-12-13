@@ -100,6 +100,45 @@ test('adds core name as label', async (t) => {
   t.is(length, 3)
 })
 
+test('can update name after defining metric', async (t) => {
+  promClient.register.clear()
+  const metrics = new HyperMetrics(promClient)
+  const core = new Hypercore(ram)
+  await core.ready()
+
+  metrics.add(core)
+  await core.append('something')
+
+  metrics.setName(core.key, 'I am named')
+  {
+    const result = await metrics.getMetricsAsJSON()
+    t.is(result[0].values[0].labels.name, 'I am named', 'Correct label name')
+    t.is(result[0].values.length, 1, 'Only one entry for this key')
+  }
+})
+
+test('document behaviour: all metric-name combinations are kept', async (t) => {
+  promClient.register.clear()
+  const metrics = new HyperMetrics(promClient)
+  const core = new Hypercore(ram)
+  await core.ready()
+
+  metrics.add(core)
+  await core.append('something')
+  {
+    const result = await metrics.getMetricsAsJSON()
+    t.is(result[0].values[0].labels.name, 'NO_NAME', 'Sanity check: no name initially')
+  }
+
+  metrics.setName(core.key, 'I am named')
+  {
+    const result = await metrics.getMetricsAsJSON()
+    t.is(result[0].values[0].labels.name, 'NO_NAME', 'There is an entry with the old label')
+    t.is(result[0].values[1].labels.name, 'I am named', 'There is an entry with the new label too')
+    t.is(result[0].values.length, 2, '2 entries for this key')
+  }
+})
+
 function findMetric (metrics, key, name) {
   return metrics.find(e => e.name === name).values.find(e => e.labels.key === key).value
 }

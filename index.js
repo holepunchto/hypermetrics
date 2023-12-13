@@ -139,13 +139,18 @@ class Hypermetrics {
       : null
   }
 
+  setName (key, name) {
+    key = Id.normalize(key)
+    this._names.set(key, name)
+  }
+
   add (core, opts = {}) {
     const key = Id.encode(core.key)
-    const name = opts.name || DEFAULT_NO_NAME
     this._cores.push(core)
-    this._names.set(key, name)
+    this.setName(key, opts.name || DEFAULT_NO_NAME)
 
     core.on('upload', (startIndex, byteLength, from) => {
+      const name = this._names.get(key)
       this.uploadedBlocks.labels({ key, type: 'hypercore', name }).inc()
       this.uploadedBytes.labels({ key, type: 'hypercore', name }).inc(byteLength)
 
@@ -156,6 +161,8 @@ class Hypermetrics {
     })
 
     core.on('download', (startIndex, byteLength, from) => {
+      const name = this._names.get(key)
+
       this.downloadedBlocks.labels({ key, type: 'hypercore', name }).inc()
       this.downloadedBytes.labels({ key, type: 'hypercore', name }).inc(byteLength)
 
